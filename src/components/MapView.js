@@ -19,6 +19,18 @@ const MapView = ({ userRole }) => {
   const [startPoint, setStartPoint] = useState(null); // { lat, lng, id, name }
   const [endPoint, setEndPoint] = useState(null);
   const [routeCoords, setRouteCoords] = useState([]); // [[lat,lng], ...]
+  const haversineKm = (a, b) => {
+    if (!a || !b) return 0;
+    const R = 6371; // km
+    const dLat = (b.lat - a.lat) * Math.PI / 180;
+    const dLng = (b.lng - a.lng) * Math.PI / 180;
+    const lat1 = a.lat * Math.PI / 180;
+    const lat2 = b.lat * Math.PI / 180;
+    const x = Math.sin(dLat/2) ** 2 + Math.sin(dLng/2) ** 2 * Math.cos(lat1) * Math.cos(lat2);
+    const d = 2 * R * Math.asin(Math.sqrt(x));
+    return d;
+  };
+  const straightDistanceKm = useMemo(() => haversineKm(startPoint, endPoint), [startPoint, endPoint]);
 
   // Mock data for boarding houses
   const boardingHouses = {
@@ -191,7 +203,8 @@ const MapView = ({ userRole }) => {
         setRouteCoords(points);
       } catch (e) {
         console.error(e);
-        setRouteCoords([]);
+        // Fallback: draw straight line between points if routing backend is unavailable
+        setRouteCoords([[startPoint.lat, startPoint.lng], [endPoint.lat, endPoint.lng]]);
       }
     };
     fetchRoute();
@@ -311,6 +324,11 @@ const MapView = ({ userRole }) => {
           {selectedLocation === 'tagbilaran' ? 'Tagbilaran City' : 'Dauis'} • {filteredHouses.length} boarding houses
           {startPoint && ` • Start: ${startPoint.name}`}
           {endPoint && ` • End: ${endPoint.name}`}
+          {startPoint && endPoint && (
+            <>
+              {` • Est. distance: ${straightDistanceKm.toFixed(2)} km (straight-line)`}
+            </>
+          )}
         </div>
       </div>
 
