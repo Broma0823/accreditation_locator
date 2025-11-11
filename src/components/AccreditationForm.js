@@ -1,46 +1,190 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 
 const CRITERIA_SECTIONS = [
   {
     key: 'facility',
     label: 'Facility',
     items: [
-      { key: 'roomSize', label: 'Room Size' },
-      { key: 'ventilation', label: 'Ventilation' },
-      { key: 'buildingComponent', label: 'Building Component' },
-      { key: 'hallway', label: 'Hallway' },
-      { key: 'kitchen', label: 'Kitchen' },
-      { key: 'diningArea', label: 'Dining Area' },
-      { key: 'bathroomFacilities', label: 'Bathroom Facilities' },
-      { key: 'comfortRoom', label: 'Comfort Room' },
-      { key: 'visitorsArea', label: "Visitor's Area" }
+      { 
+        key: 'roomSize', 
+        label: 'Room Size',
+        criteria: {
+          acceptable: '≥ 8 m² room size',
+          considerable: '4.5–7 m² room size',
+          not_acceptable: '< 4.5 m² room size'
+        }
+      },
+      { 
+        key: 'ventilation', 
+        label: 'Ventilation',
+        criteria: {
+          acceptable: '≥ 6 windows, ≥ 2 fans',
+          considerable: '2-5 windows, 1 fan',
+          not_acceptable: '0-1 window, 0 fan/s'
+        }
+      },
+      { 
+        key: 'buildingComponent', 
+        label: 'Building Component (structure, walls, roof, stairs)',
+        criteria: {
+          acceptable: 'No visible structural cracks, no leaks, railings solid, doors/windows functioning',
+          considerable: 'Minor cracks, peeling paint, small leaks; still safe but needs repair',
+          not_acceptable: 'Big cracks, sagging floors/roof, broken railings, exposed wiring, serious leaks'
+        }
+      },
+      { 
+        key: 'hallway', 
+        label: 'Hallway',
+        criteria: {
+          acceptable: 'Width ≈ 1.0 m or more, well-lit, no obstacles, clear exit paths',
+          considerable: 'Around 0.9–1.0 m, sometimes partially blocked (shoes, bikes, etc.)',
+          not_acceptable: 'Too narrow (<0.9 m), dark, often blocked, unsafe in emergency'
+        }
+      },
+      { 
+        key: 'kitchen', 
+        label: 'Kitchen',
+        criteria: {
+          acceptable: 'Safe cooking area, proper sink, storage, window + exhaust or hood, clean and not greasy',
+          considerable: 'Functional but crowded; weak ventilation; sometimes dirty',
+          not_acceptable: 'No proper ventilation, very dirty/greasy, unsafe gas/electrical setup'
+        }
+      },
+      { 
+        key: 'diningArea', 
+        label: 'Dining Area',
+        criteria: {
+          acceptable: 'Enough seats/tables for tenants, clean, ventilated, not blocking circulation',
+          considerable: 'A bit small or shared with other functions, but still usable',
+          not_acceptable: 'No real dining space; people forced to eat in hallways/beds'
+        }
+      },
+      { 
+        key: 'bathroomFacilities', 
+        label: 'Bathroom Facilities',
+        criteria: {
+          acceptable: 'Enough toilets/showers for the number of tenants (e.g., 1 CR per 6–8 people). Has water, flushing, drainage, ventilation (window or exhaust), and privacy',
+          considerable: 'Works but limited fixtures, queues at peak times, sometimes dirty',
+          not_acceptable: 'No water, broken fixtures, no door/locks, strong smell, no ventilation'
+        }
+      },
+      { 
+        key: 'comfortRoom', 
+        label: 'Comfort Room',
+        criteria: {
+          acceptable: 'Enough toilets/showers for the number of tenants (e.g., 1 CR per 6–8 people). Has water, flushing, drainage, ventilation (window or exhaust), and privacy',
+          considerable: 'Works but limited fixtures, queues at peak times, sometimes dirty',
+          not_acceptable: 'No water, broken fixtures, no door/locks, strong smell, no ventilation'
+        }
+      },
+      { 
+        key: 'visitorsArea', 
+        label: "Visitor's Area",
+        criteria: {
+          acceptable: 'Clear designated space with seats, decent ventilation, not blocking bedrooms/hallway. Can consider living room as Visitors Area',
+          considerable: 'Shared with another space (like dining), but still manageable',
+          not_acceptable: 'No proper visitor area; visitors end up in bedrooms or crowded corridors'
+        }
+      }
     ]
   },
   {
     key: 'safety',
     label: 'Safety',
     items: [
-      { key: 'fireSafety', label: 'Fire safety' },
-      { key: 'electricalInstallation', label: 'Electrical Installation' },
-      { key: 'firstAidKit', label: 'First Aid Kit' },
-      { key: 'sanitation', label: 'Sanitation' }
+      { 
+        key: 'fireSafety', 
+        label: 'Fire safety',
+        criteria: {
+          acceptable: 'Fire extinguishers present and accessible, smoke detectors functional, clear fire exits, fire safety plan posted, regular fire drills conducted',
+          considerable: 'Some fire safety equipment present but may be outdated or not easily accessible, fire exits partially blocked, infrequent fire drills',
+          not_acceptable: 'No fire extinguishers or smoke detectors, blocked or no fire exits, no fire safety plan, no fire drills, significant fire hazards present'
+        }
+      },
+      { 
+        key: 'electricalInstallation', 
+        label: 'Electrical Installation',
+        criteria: {
+          acceptable: 'Proper electrical wiring, adequate outlets with GFCI protection where needed, circuit breakers functional, no exposed wires, proper grounding',
+          considerable: 'Electrical system mostly functional but may have some outdated wiring, limited outlets, minor safety concerns, occasional issues',
+          not_acceptable: 'Exposed wiring, overloaded circuits, missing circuit breakers, no GFCI protection, frequent electrical problems, fire hazards from electrical system'
+        }
+      },
+      { 
+        key: 'firstAidKit', 
+        label: 'First Aid Kit',
+        criteria: {
+          acceptable: 'Complete first aid kit with all essential supplies, easily accessible location, well-maintained and regularly checked, supplies not expired',
+          considerable: 'First aid kit present but may be incomplete or missing some supplies, not easily accessible, infrequently checked, some expired items',
+          not_acceptable: 'No first aid kit or severely incomplete kit, supplies expired or missing, not accessible, poor maintenance'
+        }
+      },
+      { 
+        key: 'sanitation', 
+        label: 'Sanitation',
+        criteria: {
+          acceptable: 'Clean and well-maintained facilities, proper waste disposal system, pest control measures in place, regular cleaning schedule, good hygiene standards',
+          considerable: 'Generally clean but may have occasional issues, waste disposal sometimes inadequate, minor pest problems, irregular cleaning',
+          not_acceptable: 'Poor cleanliness, inadequate waste disposal, significant pest infestations, no cleaning schedule, unsanitary conditions, health hazards'
+        }
+      }
     ]
   },
   {
     key: 'security',
     label: 'Security',
     items: [
-      { key: 'locksDoorsWindows', label: 'Functional locks on doors and windows' },
-      { key: 'adequateLighting', label: 'Adequate lighting in common areas and outdoor spaces' },
-      { key: 'securityPresence', label: 'Presence of any security issue' }
+      { 
+        key: 'locksDoorsWindows', 
+        label: 'Functional locks on doors and windows',
+        criteria: {
+          acceptable: 'All doors and windows have functional, secure locks, deadbolts on main entries, locks in good condition, keys properly managed',
+          considerable: 'Most doors and windows have locks but some may be damaged or non-functional, basic security measures in place',
+          not_acceptable: 'Missing or broken locks on doors/windows, no security measures, easily accessible entry points, security compromised'
+        }
+      },
+      { 
+        key: 'adequateLighting', 
+        label: 'Adequate lighting in common areas and outdoor spaces',
+        criteria: {
+          acceptable: 'Well-lit common areas, hallways, and outdoor spaces, adequate lighting for safety, motion sensors or timers, no dark areas',
+          considerable: 'Most areas have lighting but some areas may be dim, occasional burned-out bulbs, lighting may be insufficient in some spaces',
+          not_acceptable: 'Poor lighting in common areas and outdoor spaces, many dark areas, security risks due to inadequate lighting, frequent lighting failures'
+        }
+      },
+      { 
+        key: 'securityPresence', 
+        label: 'Presence of any security issue',
+        criteria: {
+          acceptable: 'Security cameras or guards present, access control systems, incident reporting system, security protocols in place, no recent security incidents',
+          considerable: 'Some security measures in place but may be limited, occasional security concerns, basic monitoring',
+          not_acceptable: 'No security measures, frequent security incidents, no access control, no monitoring, security vulnerabilities present'
+        }
+      }
     ]
   },
   {
     key: 'rate',
     label: 'Rate',
     items: [
-      { key: 'roomRate', label: 'Room rate' },
-      { key: 'additionalCharges', label: 'Additional charges' }
+      { 
+        key: 'roomRate', 
+        label: 'Room rate',
+        criteria: {
+          acceptable: 'Fair and competitive room rates, good value for money, rates clearly displayed, reasonable compared to market standards, payment terms clearly defined',
+          considerable: 'Room rates are acceptable but may be slightly high or low compared to market, value is moderate, some transparency issues',
+          not_acceptable: 'Unfair or excessive room rates, poor value for money, rates not clearly communicated, significantly above market standards, unreasonable pricing'
+        }
+      },
+      { 
+        key: 'additionalCharges', 
+        label: 'Additional charges',
+        criteria: {
+          acceptable: 'Transparent additional charges, all fees clearly disclosed, reasonable charges for utilities and services, no hidden fees, fair billing practices',
+          considerable: 'Additional charges present but may not be fully transparent, some fees reasonable but others questionable, occasional billing issues',
+          not_acceptable: 'Hidden or undisclosed charges, excessive fees, unfair billing practices, charges not justified, billing disputes, lack of transparency'
+        }
+      }
     ]
   }
 ];
@@ -131,10 +275,6 @@ const AccreditationForm = () => {
     otherAmenities: createInitialAmenities()
   });
 
-  const [imageFile, setImageFile] = useState(null);
-  const [prediction, setPrediction] = useState(null);
-  const [isPredicting, setIsPredicting] = useState(false);
-  const [predictionError, setPredictionError] = useState('');
 
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -199,51 +339,102 @@ const AccreditationForm = () => {
     }));
   };
 
-  const handleImageChange = (event) => {
-    const file = event.target.files?.[0] ?? null;
-    setImageFile(file);
-    setPrediction(null);
-    setPredictionError('');
+  // Calculate scores and predict accreditation status
+  const calculateScore = () => {
+    let totalScore = 0;
+    let maxScore = 0;
+    const sectionScores = {};
+    const criticalItems = ['fireSafety', 'electricalInstallation', 'sanitation', 'locksDoorsWindows'];
+    let hasCriticalNotAcceptable = false;
+
+    CRITERIA_SECTIONS.forEach(section => {
+      let sectionScore = 0;
+      let sectionMax = 0;
+      
+      section.items.forEach(item => {
+        const status = formData.evaluationCriteria[section.key]?.[item.key]?.status || '';
+        sectionMax += 2;
+        maxScore += 2;
+        
+        if (status === 'acceptable') {
+          sectionScore += 2;
+          totalScore += 2;
+        } else if (status === 'considerable') {
+          sectionScore += 1;
+          totalScore += 1;
+        } else if (status === 'not_acceptable') {
+          if (criticalItems.includes(item.key)) {
+            hasCriticalNotAcceptable = true;
+          }
+        }
+      });
+      
+      sectionScores[section.key] = {
+        score: sectionScore,
+        max: sectionMax,
+        percentage: sectionMax > 0 ? (sectionScore / sectionMax) * 100 : 0
+      };
+    });
+
+    return {
+      totalScore,
+      maxScore,
+      percentage: maxScore > 0 ? (totalScore / maxScore) * 100 : 0,
+      sectionScores,
+      hasCriticalNotAcceptable
+    };
   };
 
-  const handlePredict = async () => {
-    if (!imageFile) {
-      setPredictionError('Please select an image before requesting a prediction.');
-      return;
+  const predictAccreditationStatus = (scores) => {
+    const { percentage, hasCriticalNotAcceptable } = scores;
+
+    // Accredited: 70%+ and no critical safety issues
+    if (percentage >= 70 && !hasCriticalNotAcceptable) {
+      return {
+        status: 'accredited',
+        label: 'Accredited/Retain Accreditation',
+        color: '#059669',
+        bgColor: '#f0fdf4',
+        description: 'The boarding house meets the required standards for accreditation. All critical safety requirements are met, and overall evaluation score is satisfactory.'
+      };
     }
-
-    try {
-      setIsPredicting(true);
-      setPredictionError('');
-      const payload = new FormData();
-      payload.append('image', imageFile);
-
-      const response = await fetch('http://localhost:4000/api/predict', {
-        method: 'POST',
-        body: payload
-      });
-
-      if (!response.ok) {
-        const error = await response.json().catch(() => ({ error: 'Prediction failed' }));
-        throw new Error(error.error || 'Prediction failed');
-      }
-
-      const result = await response.json();
-      setPrediction(result);
-    } catch (err) {
-      setPrediction(null);
-      setPredictionError(err.message || 'Prediction failed');
-    } finally {
-      setIsPredicting(false);
+    
+    // Not Accredited: Below 50% OR has critical safety issues
+    if (percentage < 50 || hasCriticalNotAcceptable) {
+      return {
+        status: 'not_accredited',
+        label: 'Not Accredited',
+        color: '#dc2626',
+        bgColor: '#fef2f2',
+        description: hasCriticalNotAcceptable 
+          ? 'The boarding house has critical safety issues that must be addressed before accreditation can be considered.'
+          : 'The boarding house does not meet the minimum required standards. Significant improvements are needed.'
+      };
     }
+    
+    // Conditional: 50-69% and no critical safety issues
+    return {
+      status: 'conditional',
+      label: 'Conditional',
+      color: '#d97706',
+      bgColor: '#fffbeb',
+      description: 'The boarding house meets basic requirements but needs improvements in certain areas. Accreditation may be granted after addressing the identified issues.'
+    };
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
     alert('Form submitted successfully! (This is a demo)');
+    const calculatedScores = calculateScore();
+    const calculatedPrediction = predictAccreditationStatus(calculatedScores);
     console.log('Form Data:', formData);
-    console.log('Prediction:', prediction);
+    console.log('Scores:', calculatedScores);
+    console.log('Prediction:', calculatedPrediction);
   };
+
+  // Get current scores and prediction (memoized for performance)
+  const scores = useMemo(() => calculateScore(), [formData.evaluationCriteria]);
+  const prediction = useMemo(() => predictAccreditationStatus(scores), [scores]);
 
   return (
     <div>
@@ -967,47 +1158,6 @@ const AccreditationForm = () => {
           </div>
         </div>
 
-        {/* Image-based Likelihood Prediction */}
-        <div className="card">
-          <h3 style={{ color: '#1e40af', marginBottom: '20px', borderBottom: '2px solid #e5e7eb', paddingBottom: '10px' }}>
-            Predict Accreditation Likelihood from Image
-          </h3>
-
-          <div className="form-group">
-            <label className="form-label">Upload recent documentation photo:</label>
-            <input
-              type="file"
-              accept="image/*"
-              onChange={handleImageChange}
-              className="form-input"
-            />
-          </div>
-
-          <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
-            <button
-              type="button"
-              className="btn btn-primary"
-              onClick={handlePredict}
-              disabled={isPredicting}
-            >
-              {isPredicting ? 'Analyzing...' : 'Predict Likelihood'}
-            </button>
-            {prediction && (
-              <div style={{ color: '#059669', fontWeight: 600 }}>
-                Likelihood: {(prediction.likelihood * 100).toFixed(1)}%
-                {prediction.label ? ` • ${prediction.label}` : ''}
-              </div>
-            )}
-            {predictionError && (
-              <div style={{ color: '#dc2626', fontWeight: 500 }}>{predictionError}</div>
-            )}
-          </div>
-
-          {prediction?.explanation && (
-            <p style={{ marginTop: '12px', color: '#4b5563' }}>{prediction.explanation}</p>
-          )}
-        </div>
-
         {/* Evaluation Criteria */}
         <div className="card">
           <h3 style={{ color: '#1e40af', marginBottom: '20px', borderBottom: '2px solid #e5e7eb', paddingBottom: '10px' }}>
@@ -1018,44 +1168,68 @@ const AccreditationForm = () => {
             <div key={section.key} style={{ marginBottom: '24px' }}>
               <h4 style={{ color: '#1f2937', marginBottom: '12px' }}>{section.label}</h4>
               <div style={{ overflowX: 'auto' }}>
-                <table className="criteria-table">
+                <table className="criteria-table" style={{ width: '100%', borderCollapse: 'collapse', marginBottom: '20px' }}>
                   <thead>
-                    <tr>
-                      <th>Criteria</th>
-                      <th>Acceptable</th>
-                      <th>Considerable</th>
-                      <th>Not Acceptable</th>
-                      <th>Alternative (if not acceptable)</th>
+                    <tr style={{ backgroundColor: '#f3f4f6' }}>
+                      <th style={{ padding: '12px', textAlign: 'left', border: '1px solid #d1d5db', minWidth: '200px' }}>Criteria</th>
+                      <th style={{ padding: '12px', textAlign: 'center', border: '1px solid #d1d5db', minWidth: '220px' }}>Acceptable (2)</th>
+                      <th style={{ padding: '12px', textAlign: 'center', border: '1px solid #d1d5db', minWidth: '220px' }}>Considerable (1)</th>
+                      <th style={{ padding: '12px', textAlign: 'center', border: '1px solid #d1d5db', minWidth: '220px' }}>Not Acceptable (0)</th>
+                      <th style={{ padding: '12px', textAlign: 'left', border: '1px solid #d1d5db', minWidth: '200px' }}>Alternative (if not acceptable)</th>
                     </tr>
                   </thead>
                   <tbody>
                     {section.items.map(item => {
                       const current = formData.evaluationCriteria[section.key][item.key];
+                      const hasCriteria = item.criteria && Object.keys(item.criteria).length > 0;
                       return (
-                        <tr key={item.key}>
-                          <td style={{ textAlign: 'left' }}>{item.label}</td>
-                          {['acceptable', 'considerable', 'not_acceptable'].map(option => (
-                            <td key={option}>
+                        <React.Fragment key={item.key}>
+                          <tr style={{ borderBottom: '1px solid #e5e7eb' }}>
+                            <td style={{ textAlign: 'left', verticalAlign: 'top', padding: '12px', border: '1px solid #d1d5db', backgroundColor: '#f9fafb' }}>
+                              <strong>{item.label}</strong>
+                            </td>
+                            {['acceptable', 'considerable', 'not_acceptable'].map(option => (
+                              <td key={option} style={{ verticalAlign: 'top', padding: '12px', border: '1px solid #d1d5db', minWidth: '220px' }}>
+                                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px' }}>
+                                  <input
+                                    type="radio"
+                                    name={`${section.key}-${item.key}`}
+                                    value={option}
+                                    checked={current.status === option}
+                                    onChange={() => handleCriteriaStatusChange(section.key, item.key, option)}
+                                    style={{ cursor: 'pointer' }}
+                                  />
+                                  {hasCriteria && item.criteria[option] && (
+                                    <div style={{ 
+                                      fontSize: '11px', 
+                                      color: '#4b5563', 
+                                      textAlign: 'left',
+                                      padding: '6px 8px',
+                                      lineHeight: '1.5',
+                                      backgroundColor: option === 'acceptable' ? '#f0fdf4' : option === 'considerable' ? '#fffbeb' : '#fef2f2',
+                                      borderRadius: '4px',
+                                      width: '100%',
+                                      border: `1px solid ${option === 'acceptable' ? '#bbf7d0' : option === 'considerable' ? '#fde68a' : '#fecaca'}`
+                                    }}>
+                                      {item.criteria[option]}
+                                    </div>
+                                  )}
+                                </div>
+                              </td>
+                            ))}
+                            <td style={{ verticalAlign: 'top', padding: '12px', border: '1px solid #d1d5db' }}>
                               <input
-                                type="radio"
-                                name={`${section.key}-${item.key}`}
-                                value={option}
-                                checked={current.status === option}
-                                onChange={() => handleCriteriaStatusChange(section.key, item.key, option)}
+                                type="text"
+                                value={current.alternative}
+                                onChange={(event) => handleCriteriaAlternativeChange(section.key, item.key, event.target.value)}
+                                className="form-input"
+                                placeholder="Specify alternative"
+                                disabled={current.status !== 'not_acceptable'}
+                                style={{ width: '100%', minWidth: '150px' }}
                               />
                             </td>
-                          ))}
-                          <td>
-                            <input
-                              type="text"
-                              value={current.alternative}
-                              onChange={(event) => handleCriteriaAlternativeChange(section.key, item.key, event.target.value)}
-                              className="form-input"
-                              placeholder="Specify alternative"
-                              disabled={current.status !== 'not_acceptable'}
-                            />
-                          </td>
-                        </tr>
+                          </tr>
+                        </React.Fragment>
                       );
                     })}
                   </tbody>
@@ -1082,6 +1256,148 @@ const AccreditationForm = () => {
           </div>
         </div>
 
+        {/* Accreditation Prediction Based on Evaluation Criteria */}
+        <div className="card">
+          <h3 style={{ color: '#1e40af', marginBottom: '20px', borderBottom: '2px solid #e5e7eb', paddingBottom: '10px' }}>
+            Accreditation Prediction
+          </h3>
+
+          <div style={{ 
+            padding: '20px', 
+            borderRadius: '8px', 
+            backgroundColor: prediction.bgColor,
+            border: `2px solid ${prediction.color}`,
+            marginBottom: '20px'
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '15px' }}>
+              <div>
+                <h4 style={{ color: prediction.color, margin: '0 0 8px 0', fontSize: '24px', fontWeight: 'bold' }}>
+                  {prediction.label}
+                </h4>
+                <p style={{ color: '#4b5563', margin: 0, fontSize: '14px' }}>
+                  {prediction.description}
+                </p>
+              </div>
+              <div style={{ 
+                fontSize: '48px', 
+                fontWeight: 'bold', 
+                color: prediction.color,
+                textAlign: 'center'
+              }}>
+                {scores.percentage.toFixed(1)}%
+              </div>
+            </div>
+
+            <div style={{ marginTop: '20px', paddingTop: '20px', borderTop: '1px solid #e5e7eb' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '10px' }}>
+                <span style={{ color: '#6b7280', fontWeight: '500' }}>Overall Score:</span>
+                <span style={{ color: '#1f2937', fontWeight: 'bold' }}>
+                  {scores.totalScore} / {scores.maxScore} points
+                </span>
+              </div>
+              
+              <div style={{ 
+                width: '100%', 
+                height: '24px', 
+                backgroundColor: '#e5e7eb', 
+                borderRadius: '12px', 
+                overflow: 'hidden',
+                marginTop: '10px'
+              }}>
+                <div style={{
+                  width: `${scores.percentage}%`,
+                  height: '100%',
+                  backgroundColor: prediction.color,
+                  transition: 'width 0.3s ease',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'flex-end',
+                  paddingRight: '8px',
+                  color: 'white',
+                  fontSize: '12px',
+                  fontWeight: 'bold'
+                }}>
+                  {scores.percentage >= 15 ? `${scores.percentage.toFixed(0)}%` : ''}
+                </div>
+              </div>
+            </div>
+
+            {/* Section Breakdown */}
+            <div style={{ marginTop: '20px', paddingTop: '20px', borderTop: '1px solid #e5e7eb' }}>
+              <h5 style={{ color: '#1f2937', marginBottom: '15px', fontSize: '16px' }}>Section Scores:</h5>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '15px' }}>
+                {CRITERIA_SECTIONS.map(section => {
+                  const sectionScore = scores.sectionScores[section.key];
+                  const sectionPercentage = sectionScore.percentage;
+                  let sectionColor = '#dc2626';
+                  if (sectionPercentage >= 70) sectionColor = '#059669';
+                  else if (sectionPercentage >= 50) sectionColor = '#d97706';
+
+                  return (
+                    <div key={section.key} style={{
+                      padding: '12px',
+                      backgroundColor: '#f9fafb',
+                      borderRadius: '6px',
+                      border: '1px solid #e5e7eb'
+                    }}>
+                      <div style={{ 
+                        fontSize: '13px', 
+                        fontWeight: '600', 
+                        color: '#1f2937',
+                        marginBottom: '6px'
+                      }}>
+                        {section.label}
+                      </div>
+                      <div style={{ 
+                        fontSize: '18px', 
+                        fontWeight: 'bold', 
+                        color: sectionColor,
+                        marginBottom: '4px'
+                      }}>
+                        {sectionScore.score} / {sectionScore.max}
+                      </div>
+                      <div style={{
+                        width: '100%',
+                        height: '6px',
+                        backgroundColor: '#e5e7eb',
+                        borderRadius: '3px',
+                        overflow: 'hidden'
+                      }}>
+                        <div style={{
+                          width: `${sectionPercentage}%`,
+                          height: '100%',
+                          backgroundColor: sectionColor,
+                          transition: 'width 0.3s ease'
+                        }} />
+                      </div>
+                      <div style={{ 
+                        fontSize: '11px', 
+                        color: '#6b7280', 
+                        marginTop: '4px'
+                      }}>
+                        {sectionPercentage.toFixed(0)}%
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            {scores.hasCriticalNotAcceptable && (
+              <div style={{
+                marginTop: '20px',
+                padding: '12px',
+                backgroundColor: '#fef2f2',
+                border: '1px solid #fecaca',
+                borderRadius: '6px',
+                color: '#dc2626'
+              }}>
+                <strong>⚠️ Warning:</strong> Critical safety issues have been identified. These must be addressed before accreditation can be granted.
+              </div>
+            )}
+          </div>
+        </div>
+
         {/* Evaluation Result */}
         <div className="card">
           <h3 style={{ color: '#1e40af', marginBottom: '20px', borderBottom: '2px solid #e5e7eb', paddingBottom: '10px' }}>
@@ -1090,7 +1406,7 @@ const AccreditationForm = () => {
 
           <div className="form-group">
             <label className="form-label">Evaluation Status:</label>
-            <div style={{ display: 'flex', gap: '20px', marginTop: '10px' }}>
+            <div style={{ display: 'flex', gap: '20px', marginTop: '10px', flexWrap: 'wrap' }}>
               <label style={{ display: 'flex', alignItems: 'center' }}>
                 <input
                   type="radio"
@@ -1124,6 +1440,17 @@ const AccreditationForm = () => {
                 />
                 Not Accredited
               </label>
+            </div>
+            <div style={{ 
+              marginTop: '15px', 
+              padding: '12px', 
+              backgroundColor: '#f0f9ff', 
+              border: '1px solid #bae6fd', 
+              borderRadius: '6px',
+              fontSize: '14px',
+              color: '#0369a1'
+            }}>
+              <strong>💡 Tip:</strong> The prediction above is based on your evaluation criteria scores. You can override it by manually selecting the evaluation status above if needed.
             </div>
           </div>
         </div>
