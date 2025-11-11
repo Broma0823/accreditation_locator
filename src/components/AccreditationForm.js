@@ -967,50 +967,45 @@ const AccreditationForm = () => {
           </div>
         </div>
 
-        {/* Evaluation Result */}
+        {/* Image-based Likelihood Prediction */}
         <div className="card">
           <h3 style={{ color: '#1e40af', marginBottom: '20px', borderBottom: '2px solid #e5e7eb', paddingBottom: '10px' }}>
-            Evaluation Result
+            Predict Accreditation Likelihood from Image
           </h3>
 
           <div className="form-group">
-            <label className="form-label">Evaluation Status:</label>
-            <div style={{ display: 'flex', gap: '20px', marginTop: '10px' }}>
-              <label style={{ display: 'flex', alignItems: 'center' }}>
-                <input
-                  type="radio"
-                  name="evaluationStatus"
-                  value="accredited"
-                  checked={formData.evaluationStatus === 'accredited'}
-                  style={{ marginRight: '8px' }}
-                  onChange={handleInputChange}
-                />
-                Accredited/Retain Accreditation
-              </label>
-              <label style={{ display: 'flex', alignItems: 'center' }}>
-                <input
-                  type="radio"
-                  name="evaluationStatus"
-                  value="conditional"
-                  checked={formData.evaluationStatus === 'conditional'}
-                  style={{ marginRight: '8px' }}
-                  onChange={handleInputChange}
-                />
-                Conditional
-              </label>
-              <label style={{ display: 'flex', alignItems: 'center' }}>
-                <input
-                  type="radio"
-                  name="evaluationStatus"
-                  value="not_accredited"
-                  checked={formData.evaluationStatus === 'not_accredited'}
-                  style={{ marginRight: '8px' }}
-                  onChange={handleInputChange}
-                />
-                Not Accredited
-              </label>
-            </div>
+            <label className="form-label">Upload recent documentation photo:</label>
+            <input
+              type="file"
+              accept="image/*"
+              onChange={handleImageChange}
+              className="form-input"
+            />
           </div>
+
+          <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+            <button
+              type="button"
+              className="btn btn-primary"
+              onClick={handlePredict}
+              disabled={isPredicting}
+            >
+              {isPredicting ? 'Analyzing...' : 'Predict Likelihood'}
+            </button>
+            {prediction && (
+              <div style={{ color: '#059669', fontWeight: 600 }}>
+                Likelihood: {(prediction.likelihood * 100).toFixed(1)}%
+                {prediction.label ? ` • ${prediction.label}` : ''}
+              </div>
+            )}
+            {predictionError && (
+              <div style={{ color: '#dc2626', fontWeight: 500 }}>{predictionError}</div>
+            )}
+          </div>
+
+          {prediction?.explanation && (
+            <p style={{ marginTop: '12px', color: '#4b5563' }}>{prediction.explanation}</p>
+          )}
         </div>
 
         {/* Evaluation Criteria */}
@@ -1087,45 +1082,50 @@ const AccreditationForm = () => {
           </div>
         </div>
 
-        {/* Image-based Likelihood Prediction */}
+        {/* Evaluation Result */}
         <div className="card">
           <h3 style={{ color: '#1e40af', marginBottom: '20px', borderBottom: '2px solid #e5e7eb', paddingBottom: '10px' }}>
-            Predict Accreditation Likelihood from Image
+            Evaluation Result
           </h3>
 
           <div className="form-group">
-            <label className="form-label">Upload recent documentation photo:</label>
-            <input
-              type="file"
-              accept="image/*"
-              onChange={handleImageChange}
-              className="form-input"
-            />
+            <label className="form-label">Evaluation Status:</label>
+            <div style={{ display: 'flex', gap: '20px', marginTop: '10px' }}>
+              <label style={{ display: 'flex', alignItems: 'center' }}>
+                <input
+                  type="radio"
+                  name="evaluationStatus"
+                  value="accredited"
+                  checked={formData.evaluationStatus === 'accredited'}
+                  style={{ marginRight: '8px' }}
+                  onChange={handleInputChange}
+                />
+                Accredited/Retain Accreditation
+              </label>
+              <label style={{ display: 'flex', alignItems: 'center' }}>
+                <input
+                  type="radio"
+                  name="evaluationStatus"
+                  value="conditional"
+                  checked={formData.evaluationStatus === 'conditional'}
+                  style={{ marginRight: '8px' }}
+                  onChange={handleInputChange}
+                />
+                Conditional
+              </label>
+              <label style={{ display: 'flex', alignItems: 'center' }}>
+                <input
+                  type="radio"
+                  name="evaluationStatus"
+                  value="not_accredited"
+                  checked={formData.evaluationStatus === 'not_accredited'}
+                  style={{ marginRight: '8px' }}
+                  onChange={handleInputChange}
+                />
+                Not Accredited
+              </label>
+            </div>
           </div>
-
-          <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
-            <button
-              type="button"
-              className="btn btn-primary"
-              onClick={handlePredict}
-              disabled={isPredicting}
-            >
-              {isPredicting ? 'Analyzing...' : 'Predict Likelihood'}
-            </button>
-            {prediction && (
-              <div style={{ color: '#059669', fontWeight: 600 }}>
-                Likelihood: {(prediction.likelihood * 100).toFixed(1)}%
-                {prediction.label ? ` • ${prediction.label}` : ''}
-              </div>
-            )}
-            {predictionError && (
-              <div style={{ color: '#dc2626', fontWeight: 500 }}>{predictionError}</div>
-            )}
-          </div>
-
-          {prediction?.explanation && (
-            <p style={{ marginTop: '12px', color: '#4b5563' }}>{prediction.explanation}</p>
-          )}
         </div>
 
         <div style={{ textAlign: 'center', marginTop: '30px' }}>
