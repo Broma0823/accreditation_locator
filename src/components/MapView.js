@@ -32,8 +32,8 @@ const MapView = ({ userRole }) => {
   };
   const straightDistanceKm = useMemo(() => haversineKm(startPoint, endPoint), [startPoint, endPoint]);
 
-  // Mock data for boarding houses
-  const boardingHouses = {
+  // Mock data for boarding houses - moved outside component to avoid recreation on every render
+  const boardingHouses = useMemo(() => ({
     tagbilaran: [
       {
         id: 1,
@@ -129,7 +129,7 @@ const MapView = ({ userRole }) => {
         features: ["Fire Extinguisher", "Gate & Fence", "House Rules", "Curfew"]
       }
     ]
-  };
+  }), []);
 
   // Geographic bounds covering Tagbilaran City and Dauis (Bohol)
   const dauisTagbilaranBounds = useMemo(() => {
@@ -153,7 +153,7 @@ const MapView = ({ userRole }) => {
       map.setMaxBounds(dauisTagbilaranBounds);
       map.fitBounds(dauisTagbilaranBounds, { padding: [20, 20] });
       map.setView([loc.lat, loc.lng], loc.zoom, { animate: true });
-    }, [selected, map]);
+    }, [selected, map, locationCenters, dauisTagbilaranBounds]);
     return null;
   };
 
@@ -164,7 +164,7 @@ const MapView = ({ userRole }) => {
       house.address.toLowerCase().includes(searchTerm.toLowerCase())
     );
     setFilteredHouses(filtered);
-  }, [selectedLocation, searchTerm]);
+  }, [selectedLocation, searchTerm, boardingHouses]);
 
   const getStatusColor = (status) => {
     switch (status) {
